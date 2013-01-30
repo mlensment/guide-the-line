@@ -9,7 +9,7 @@ var Player = function(params) {
 Player.prototype.reset = function() {
   this.colliding = false;
   this.velocity = new Vector(0, this.game.level.speed * -1);
-  this.path = [new Vector(this.game.canvas.width / 2, this.game.canvas.height / 2)];
+  this.path = [new Vector(this.game.canvas.width / 2, this.game.canvas.height / 2), new Vector(this.game.canvas.width / 2, this.game.canvas.height / 2)];
   this.position = this.path[0];
   this.lastDirection = null;
   this.score = 0;
@@ -18,7 +18,7 @@ Player.prototype.reset = function() {
 
 Player.prototype.detectCollision = function(ctx) {
   var p = ctx.getImageData(this.position.x, this.position.y, 1, 1).data;
-  if(this.position.y > this.game.canvas.height || p[0] == 255 && p[1] == 0 && p[2] == 0) {
+  if(this.position.y > this.game.canvas.height || p[0] == 66 && p[1] == 66 && p[2] == 66) {
     this.colliding = true;
   }
 };
@@ -42,49 +42,62 @@ Player.prototype.update = function(ctx) {
     this.velocity.idiv(speed / this.speedLimit);
   }
 
+  this.updatePath();
+
   for(var i in this.path) {
     var point = this.path[i];
     point.y += this.game.level.speed;
   }
 
-  var lastPosition = this.path[this.path.length - 1];
-  var newPosition = new Vector(lastPosition.x, lastPosition.y);
-  newPosition.iadd(this.velocity);
+  this.position = this.path[this.path.length - 1];
 
-  if(newPosition.x > this.game.canvas.width) {
-    newPosition.x = 0;
-  }
-
-  if(newPosition.x < 0) {
-    newPosition.x = this.game.canvas.width;
-  }
-
-  this.path.push(newPosition);
-  this.position = newPosition;
-
-  if(this.path[0].y > this.game.canvas.height) {
+  if(this.path[1].y > this.game.canvas.height) {
     this.path.shift();
   }
 
   this.debug();
 };
 
-Player.prototype.draw = function(ctx) {
-  if(this.colliding) {
-    ctx.strokeStyle = 'rgb(0, 255, 0)';
-  } else {
-    ctx.strokeStyle = 'rgb(0, 0, 255)';
+Player.prototype.updatePath = function() {
+  var a = this.path[this.path.length - 2];
+  var b = this.path[this.path.length - 1]; //last piece
+  var newX = b.x + this.velocity.x;
+  var newY = b.y + this.velocity.y;
+  
+  if(newX > this.game.canvas.width) {
+    this.path.push(new Vector(0, newY));
+    this.path.push(new Vector(0, newY));
+    return;
   }
+
+  if(newX < 0) {
+    this.path.push(new Vector(this.game.canvas.width, newY));
+    this.path.push(new Vector(this.game.canvas.width, newY));
+    return;
+  }
+
+  if(newX == a.x && newX == b.x) {
+    b.y = newY;
+  } else if(newY == a.y && newY == b.y) {
+    b.x = newX;
+  } else {
+    this.path.push(new Vector(newX, newY));
+  }  
+};
+
+Player.prototype.draw = function(ctx) {
+  ctx.strokeStyle = 'rgb(255, 255, 255)';
 
   ctx.beginPath();
   for(var i in this.path) {
       var point = this.path[i];
       var lastPoint = (i > 0) ? this.path[i - 1] : null;
-      if(lastPoint && Math.abs(lastPoint.x - point.x) > 10) {
+      if(lastPoint && Math.abs(lastPoint.x - point.x) >= this.game.canvas.width - 4) {
         ctx.moveTo(point.x, point.y);
       } else {
         ctx.lineTo(point.x, point.y);
       }
+        ctx.lineTo(point.x, point.y);
   }
 
   ctx.stroke();
@@ -96,6 +109,10 @@ Player.prototype.bindListeners = function() {
   }.bind(this));
 
   $(document).keydown(function(e) {
+    if((!this.game.running && e.which != 13 && e.which != 80) || (this.game.gameEnded && e.which == 80)) {
+      return;
+    }
+
     switch(e.which) {
       case 80:
         //pause
@@ -114,39 +131,24 @@ Player.prototype.bindListeners = function() {
       case 38:
         // up
         this.velocity.x = 0;
-        if(this.velocity.y == 0 && this.lastDirection == 'up') {
-          return;
-        }
-
         this.velocity.y -= this.game.level.speed;
         this.lastDirection = 'up';
       break;
       case 40:
         // down
         this.velocity.x = 0;
-        if(this.velocity.y == 0 && this.lastDirection == 'down') {
-          return;
-        }
-
         this.lastDirection = 'down';
         this.velocity.y += this.game.level.speed;
       break;
       case 37:
         // left
         this.velocity.y = 0;
-        if(this.velocity.x == 0 && this.lastDirection == 'left') {
-          return;
-        }
         this.velocity.x -= this.game.level.speed;
         this.lastDirection = 'left';
       break;
       case 39:
         // right
         this.velocity.y = 0;
-        if(this.velocity.x == 0 && this.lastDirection == 'right') {
-          return;
-        }
-      
         this.velocity.x += this.game.level.speed;
         this.lastDirection = 'right';
       break;

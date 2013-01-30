@@ -1,8 +1,9 @@
 var Level = function(params) {
   this.game = params.game;
-  this.tileSize = 20;
   this.speed = 0;
   this.offset = 0;
+  this.offsetX = 0;
+  this.mapHeight = 0;
   this.currentLevel = 1;
   this.loading = false;
   this.map = [];
@@ -25,8 +26,11 @@ Level.prototype.loadLevel = function(level) {
   map = map.split(' ');
 
   this.tileSize = Math.round(this.game.canvas.width / map[0].length);
+  this.offsetX = (this.game.canvas.width - map[0].length * this.tileSize) / 2;
 
   this.offset = this.tileSize * map.length * -1;
+  this.mapHeight = Math.abs(this.offset);
+
   var line = [];
   for(var i in map) {
     for(var j in map[i]) {
@@ -67,17 +71,42 @@ Level.prototype.update = function() {
   if(this.offset + (this.game.canvas.height - this.game.player.position.y) - (this.tileSize * 2) >= this.game.canvas.height) {
     this.loadNext();
   }
+
+  //TODO: Rewrite this using map buffering and move logic from draw to here
+  if(this.offset > 0 && this.mapHeight + this.offset > this.game.canvas.height + this.tileSize) {
+    this.map.pop();
+    this.mapHeight -= this.tileSize;
+  } else if (Math.abs(this.mapHeight - Math.abs(this.offset)) > this.game.canvas.height + this.tileSize) {
+    this.map.pop();
+    this.mapHeight -= this.tileSize;
+  }
 };
 
 Level.prototype.draw = function(ctx) {
-  ctx.fillStyle = 'red';
-  for(var i in this.map) {
+  ctx.fillStyle = 'rgb(66, 66, 66)';
+  //calculate how many map rows to loop through
+  if(this.offset + this.tileSize > 0) {
+    var tileCount = 0;
+  } else {
+    var pixelsOver = this.mapHeight - Math.abs(this.offset);
+    var tileCount = Math.abs(this.map.length - 1 - Math.ceil(pixelsOver / this.tileSize));
+  }
+
+  var height = this.map.length - 1;
+  for(var i = height; i >= tileCount; i--) {
+    var len = this.map[i].length;
     for(var j in this.map[i]) {
       var tile = this.map[i][j];
-      if(tile == 'x'){
-        var posX = this.tileSize * j;
+      if(tile == 'x') {
+        var posX = (j == 0) ? 0 : this.tileSize * j + this.offsetX;
         var posY = (this.tileSize * i) + this.offset;
-        ctx.fillRect(posX, posY, this.tileSize, this.tileSize);
+
+        if (j == 0 || j == len - 1) {
+          var sizeX = this.tileSize + this.offsetX;
+          ctx.fillRect(posX, posY, sizeX, this.tileSize);
+        } else {
+          ctx.fillRect(posX, posY, this.tileSize, this.tileSize);
+        }
       }
     }
   }

@@ -4,6 +4,7 @@
 }
 
 html, body {
+  background: url("http://martin.byte.net.ee/template/tume/images/bg_kesklinn_60_repeat.jpg") center top fixed black;
   width: 100%;
   height: 100%;
   font-family: Calibri;

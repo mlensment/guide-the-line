@@ -29,6 +29,7 @@ Hud.prototype.bindListeners = function(params) {
   }.bind(this));
 
   this.game.ee.addListener('pause', function() {
+    if(this.game.gameEnded) return;
     this.showOverlay({
       title: 'Paus!',
       subTitle: 'Tõmbad hinge, jah?',
@@ -61,7 +62,7 @@ Hud.prototype.update = function() {
 
 Hud.prototype.draw = function() {
   if(this.overlay) {
-    this.game.ctx.fillStyle = 'black';
+    this.game.ctx.fillStyle = 'white';
     if(this.overlay.transparent === false) {
       this.game.ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
       this.game.ctx.fillRect(0, 0, this.game.canvas.width, this.game.canvas.height);
@@ -90,12 +91,12 @@ Hud.prototype.draw = function() {
   var x = this.game.canvas.width - 85;
   var y = this.game.canvas.height - 6;
   this.game.ctx.font = '12pt Calibri';
-  this.game.ctx.fillStyle = 'black';
+  this.game.ctx.fillStyle = 'white';
   this.game.ctx.fillText('Kiirus:', x, y);
 
   x = this.game.canvas.width - 40;
   y = this.game.canvas.height - 15;
-  this.game.ctx.fillStyle = 'gray';
+  this.game.ctx.fillStyle = 'white';
   var speed = Math.round((Math.abs(this.game.player.velocity.x) + Math.abs(this.game.player.velocity.y)) / this.game.level.speed);
   for(var i = 0; i < speed; i++) {
     this.game.ctx.fillRect(x, y, 10, 10);
@@ -104,7 +105,7 @@ Hud.prototype.draw = function() {
 
   x = 5;
   y = this.game.canvas.height - 6;
-  this.game.ctx.fillStyle = 'black';
+  this.game.ctx.fillStyle = 'white';
 
   this.game.ctx.fillText('Skoor: ' + this.game.player.score, x, y);
 };
