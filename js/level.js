@@ -67,7 +67,6 @@ Level.prototype.reset = function() {
 
 Level.prototype.update = function() {
   this.offset += this.speed;
-  var height = (this.map.length * this.tileSize);
   if(this.offset + (this.game.canvas.height - this.game.player.position.y) - (this.tileSize * 2) >= this.game.canvas.height) {
     this.loadNext();
   }

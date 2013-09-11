@@ -1,9 +1,4 @@
-$(document).ready(function() {
-  new LineGame();
-});
-
 var LineGame = function() {
-  lineGame = this;
   this.ee = new EventEmitter();
   this.gameEnded = false;
 
@@ -85,10 +80,8 @@ LineGame.prototype.draw = function() {
   this.hud.draw();
 };
 
-
 LineGame.prototype.setupCanvas = function() {
-  $('body').prepend('<canvas style="border: 1px solid #424242;" id="guide-the-line" width="' + 652 + '" height="' + 500 + '"></canvas>');
-  $('#debug').append(window.innerWidth +' x '+ window.innerHeight)
+  $('#lineGame').prepend('<canvas style="border: 1px solid #424242;" id="guide-the-line" width="' + 652 + '" height="' + 500 + '"></canvas>');
   this.canvas = document.getElementById('guide-the-line');
   this.ctx = this.canvas.getContext('2d');
 };

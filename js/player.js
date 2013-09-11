@@ -11,7 +11,7 @@ Player.prototype.reset = function() {
   this.velocity = new Vector(0, this.game.level.speed * -1);
   this.path = [new Vector(this.game.canvas.width / 2, this.game.canvas.height / 2), new Vector(this.game.canvas.width / 2, this.game.canvas.height / 2)];
   this.position = this.path[0];
-  this.lastDirection = null;
+  this.forbiddenButton = null;
   this.score = 0;
   this.scoreInternal = 0;
 };
@@ -60,6 +60,11 @@ Player.prototype.update = function(ctx) {
 
 Player.prototype.updatePath = function() {
   var a = this.path[this.path.length - 2];
+    
+  if(!a) {
+    return;
+  }
+  
   var b = this.path[this.path.length - 1]; //last piece
   var newX = b.x + this.velocity.x;
   var newY = b.y + this.velocity.y;
@@ -108,9 +113,17 @@ Player.prototype.bindListeners = function() {
     this.speedLimit = this.game.level.speed * 3;
   }.bind(this));
 
+  this.bindKeyboard();
+};
+
+Player.prototype.bindKeyboard = function() {
   $(document).keydown(function(e) {
     if((!this.game.running && e.which != 13 && e.which != 80) || (this.game.gameEnded && e.which == 80)) {
       return;
+    }
+    
+    if(e.which == this.forbiddenButton) {
+      return false;
     }
 
     switch(e.which) {
@@ -132,27 +145,48 @@ Player.prototype.bindListeners = function() {
         // up
         this.velocity.x = 0;
         this.velocity.y -= this.game.level.speed;
-        this.lastDirection = 'up';
+        
+        if(this.velocity.x == 0 && this.velocity.y >= 0 && this.velocity.y < 0.1) {
+          this.forbiddenButton = 38; 
+        } else {
+          this.forbiddenButton = null;
+        }
       break;
       case 40:
         // down
         this.velocity.x = 0;
-        this.lastDirection = 'down';
         this.velocity.y += this.game.level.speed;
+        
+        if(this.velocity.x == 0 && Math.abs(this.velocity.y) >= 0 && Math.abs(this.velocity.y) < 0.1) {
+          this.forbiddenButton = 40; 
+        } else {
+          this.forbiddenButton = null;
+        }
       break;
       case 37:
         // left
         this.velocity.y = 0;
         this.velocity.x -= this.game.level.speed;
-        this.lastDirection = 'left';
+        
+        if(this.velocity.y == 0 && Math.abs(this.velocity.x) >= 0 && Math.abs(this.velocity.x) < 0.1) {
+          this.forbiddenButton = 37; 
+        } else {
+          this.forbiddenButton = null;
+        }
       break;
       case 39:
         // right
         this.velocity.y = 0;
         this.velocity.x += this.game.level.speed;
-        this.lastDirection = 'right';
+        
+        if(this.velocity.y == 0 && Math.abs(this.velocity.x) >= 0 && Math.abs(this.velocity.x) < 0.1) {
+          this.forbiddenButton = 39; 
+        } else {
+          this.forbiddenButton = null;
+        }
       break;
     }
+
     return false;
   }.bind(this));
 };

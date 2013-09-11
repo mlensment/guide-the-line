@@ -36,7 +36,7 @@ Hud.prototype.bindListeners = function(params) {
       transparent: false
     });
   }.bind(this));
-
+  
   this.game.ee.addListener('start', function() {
     this.reset();
   }.bind(this));
